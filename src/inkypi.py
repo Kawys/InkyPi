@@ -66,6 +66,10 @@ refresh_task = RefreshTask(device_config, display_manager)
 
 load_plugins(device_config.get_plugins())
 
+#Assert that display is set to mock if display is remote
+if device_config.get_config("remote", default=False):
+    assert device_config.get_config("display_type") == "mock"
+
 # Store dependencies
 app.config['DEVICE_CONFIG'] = device_config
 app.config['DISPLAY_MANAGER'] = display_manager
