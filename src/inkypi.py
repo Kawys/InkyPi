@@ -24,12 +24,12 @@ from flask import Flask, request, send_from_directory
 from werkzeug.serving import is_running_from_reloader
 from config import Config
 from display.display_manager import DisplayManager
-from refresh_task import RefreshTask
 from blueprints.main import main_bp
 from blueprints.settings import settings_bp
 from blueprints.plugin import plugin_bp
 from blueprints.playlist import playlist_bp
 from blueprints.apikeys import apikeys_bp
+from refresh import Refresh
 from jinja2 import ChoiceLoader, FileSystemLoader
 from plugins.plugin_registry import load_plugins
 from waitress import serve
@@ -62,7 +62,7 @@ app.jinja_loader = ChoiceLoader([FileSystemLoader(directory) for directory in te
 
 device_config = Config()
 display_manager = DisplayManager(device_config)
-refresh_task = RefreshTask(device_config, display_manager)
+refresh = Refresh(device_config, display_manager)
 
 load_plugins(device_config.get_plugins())
 
@@ -73,7 +73,7 @@ if device_config.get_config("remote", default=False):
 # Store dependencies
 app.config['DEVICE_CONFIG'] = device_config
 app.config['DISPLAY_MANAGER'] = display_manager
-app.config['REFRESH_TASK'] = refresh_task
+app.config['REFRESH'] = refresh
 
 # Set additional parameters
 app.config['MAX_FORM_PARTS'] = 10_000
@@ -89,10 +89,6 @@ app.register_blueprint(apikeys_bp)
 register_heif_opener()
 
 if __name__ == '__main__':
-
-    # start the background refresh task
-    refresh_task.start()
-
     # display default inkypi image on startup
     if device_config.get_config("startup") is True:
         logger.info("Startup flag is set, displaying startup image")
@@ -118,4 +114,4 @@ if __name__ == '__main__':
 
         serve(app, host="0.0.0.0", port=PORT, threads=1)
     finally:
-        refresh_task.stop()
+        pass

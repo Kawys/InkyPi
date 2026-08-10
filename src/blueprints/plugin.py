@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app, render_template, send_from_directory
 from plugins.plugin_registry import get_plugin_instance
 from utils.app_utils import resolve_path, handle_request_files, parse_form
-from refresh_task import ManualRefresh, PlaylistRefresh
 import json
 import os
 import logging
@@ -203,7 +202,7 @@ def update_plugin_instance(instance_name):
 @plugin_bp.route('/display_plugin_instance', methods=['POST'])
 def display_plugin_instance():
     device_config = current_app.config['DEVICE_CONFIG']
-    refresh_task = current_app.config['REFRESH_TASK']
+    refresh = current_app.config['REFRESH']
     playlist_manager = device_config.get_playlist_manager()
 
     data = request.json
@@ -220,7 +219,7 @@ def display_plugin_instance():
         if not plugin_instance:
             return jsonify({"success": False, "message": f"Plugin instance '{plugin_instance_name}' not found"}), 400
 
-        refresh_task.manual_update(PlaylistRefresh(playlist, plugin_instance, force=True))
+        refresh.playlist_refresh(playlist, plugin_instance, force=True)
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
@@ -228,28 +227,14 @@ def display_plugin_instance():
 
 @plugin_bp.route('/update_now', methods=['POST'])
 def update_now():
-    device_config = current_app.config['DEVICE_CONFIG']
-    refresh_task = current_app.config['REFRESH_TASK']
-    display_manager = current_app.config['DISPLAY_MANAGER']
+    refresh = current_app.config['REFRESH']
 
     try:
         plugin_settings = parse_form(request.form)
         plugin_settings.update(handle_request_files(request.files))
         plugin_id = plugin_settings.pop("plugin_id")
 
-        # Check if refresh task is running
-        if refresh_task.running:
-            refresh_task.manual_update(ManualRefresh(plugin_id, plugin_settings))
-        else:
-            # In development mode, directly update the display
-            logger.info("Refresh task not running, updating display directly")
-            plugin_config = device_config.get_plugin(plugin_id)
-            if not plugin_config:
-                return jsonify({"error": f"Plugin '{plugin_id}' not found"}), 404
-
-            plugin = get_plugin_instance(plugin_config)
-            image = plugin.generate_image(plugin_settings, device_config)
-            display_manager.display_image(image, image_settings=plugin_config.get("image_settings", []))
+        refresh.manual_refresh(plugin_id, plugin_settings)
 
     except Exception as e:
         logger.exception(f"Error in update_now: {str(e)}")

@@ -70,11 +70,6 @@ def save_settings():
         if "inky_saturation" in form_data:
             settings["image_settings"]["inky_saturation"] = float(form_data.get("inky_saturation", "0.5"))
         device_config.update_config(settings)
-
-        if plugin_cycle_interval_seconds != previous_interval_seconds:
-            # wake the background thread up to signal interval config change
-            refresh_task = current_app.config['REFRESH_TASK']
-            refresh_task.signal_config_change()
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
     except Exception as e:
@@ -96,7 +91,7 @@ def shutdown():
 def download_logs():
     try:
         buffer = io.StringIO()
-        
+
         # Get 'hours' from query parameters, default to 2 if not provided or invalid
         hours_str = request.args.get('hours', '2')
         try:
