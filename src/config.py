@@ -55,8 +55,11 @@ class Config:
     def write_config(self):
         """Updates the cached config from the model objects and writes to the config file."""
         logger.debug(f"Writing device config to {self.config_file}")
-        self.update_value("playlist_config", self.playlist_manager.to_dict())
-        self.update_value("refresh_info", self.refresh_info.to_dict())
+        playlist_config = self.playlist_manager.to_dict()
+        [ p.pop("current_plugin_index") for p in playlist_config["playlists"] ]
+        self.update_value("playlist_config", playlist_config)
+        #Refresh info not persistent
+        #self.update_value("refresh_info", self.refresh_info.to_dict())
         with open(self.config_file, 'w') as outfile:
             json.dump(self.config, outfile, indent=4)
 

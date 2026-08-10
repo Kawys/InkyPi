@@ -14,11 +14,11 @@ class Refresh:
     def __init__(self, device_config, display_manager):
         self.device_config = device_config
         self.display_manager = display_manager
+        self.last_image_hash = None
 
 
     def manual_refresh(self, plugin_id: str, plugin_settings: dict):
         current_dt = self._get_current_datetime()
-        latest_refresh = self.device_config.get_refresh_info()
 
         plugin_config = self.device_config.get_plugin(plugin_id)
         if plugin_config is None:
@@ -36,7 +36,8 @@ class Refresh:
         }
 
         # check if image is the same as current image
-        if image_hash != latest_refresh.image_hash:
+        if image_hash != self.last_image_hash:
+            self.last_image_hash = image_hash
             logger.info(f"!!Updating display. | refresh_info: {refresh_info}")
             self.display_manager.display_image(image, image_settings=plugin.config.get("image_settings", []))
         else:
@@ -44,15 +45,12 @@ class Refresh:
 
         # update latest refresh data in the device config
         self.device_config.refresh_info = RefreshInfo(**refresh_info)
-        self.device_config.write_config()
 
     def playlist_refresh(self, playlist=None, plugin_instance=None, force=False):
         """Generate new image for plugins in Playlist context."""
         current_dt = self._get_current_datetime()
-        latest_refresh = self.device_config.get_refresh_info()
         if playlist is None or plugin_instance is None:
             playlist_manager = self.device_config.get_playlist_manager()
-
 
             playlist = playlist_manager.determine_active_playlist(current_dt)
             if playlist is None:
@@ -96,7 +94,8 @@ class Refresh:
             "image_hash": image_hash
         }
         # check if image is the same as current image
-        if image_hash != latest_refresh.image_hash:
+        if image_hash != self.last_image_hash:
+            self.last_image_hash = image_hash
             logger.info(f"!!Updating display. | refresh_info: {refresh_info}")
             self.display_manager.display_image(image, image_settings=plugin.config.get("image_settings", []))
         else:
@@ -104,7 +103,6 @@ class Refresh:
 
         # update latest refresh data in the device config
         self.device_config.refresh_info = RefreshInfo(**refresh_info)
-        self.device_config.write_config()
 
         return image
 
