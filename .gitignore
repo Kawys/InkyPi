@@ -173,3 +173,8 @@ mock_display_output/
 # Static Files added by install/update_vendors.sh
 /src/static/scripts/
 /src/static/styles/
+
+#Super productivity
+/package-lock.json
+/package.json
+/node_modules
