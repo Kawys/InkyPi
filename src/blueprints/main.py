@@ -4,7 +4,7 @@ from datetime import datetime
 from plugins.plugin_registry import get_plugin_instance
 from utils.app_utils import rgetattr
 import logging
-import json
+from ast import literal_eval
 
 logger = logging.getLogger(__name__)
 main_bp = Blueprint("main", __name__)
@@ -73,7 +73,7 @@ def execute_command(plugin_id, command_name):
             if command:
                 args = request.form.get('args')
                 if args:
-                    args = json.loads(args)
+                    args = literal_eval(args)
                 else:
                     args = {}
                 result = command(**args)
