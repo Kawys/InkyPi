@@ -2,6 +2,7 @@ import logging
 import os
 import socket
 import subprocess
+import functools
 
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -45,7 +46,7 @@ def resolve_path(file_path):
     if src_dir is None:
         # Default to the src directory
         src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
+
     src_path = Path(src_dir)
     return str(src_path / file_path)
 
@@ -185,3 +186,8 @@ def handle_request_files(request_files, form_data={}):
         else:
             file_location_map[key] = file_path
     return file_location_map
+
+def rgetattr(obj, attr, *args):
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
