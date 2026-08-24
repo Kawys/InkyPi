@@ -1,0 +1,26 @@
+<div class="modal-content">
+  <span class="close-button" onclick="closeModal('spModal')">×</span>
+  <h2>Superprod global settings</h2>
+  <div class="separator"></div>
+  <div class="form-group">
+    <span style="color: var(--text-primary);">Current sp command status: <b id="state">UNKNOWN</b></span>
+    <button class="edit-button" onclick="getState(force_check=true)"><img class="action-icon" src="{{ url_for('plugin.image', plugin_id='superprod', filename='refresh.png') }}" alt="refresh state"></button>
+  </div>
+
+  <div class="form-group" id="spLogin" style="display: none">
+    <div class="separator"></div>
+    <button class="header-button" style="text-decoration: none; background-color: #2c66b1; color: #fff;" onclick="getLink()">Log in to Dropbox</button>
+    <div class="form-group">
+      <label for="loginCode" class="form-label">Login code:</label>
+      <input class="form-input" type="text" id="loginCode" name="loginCode" placeholder="Enter login code here">
+      <button type="button" id="submitCode" class="action-button" onclick="saveLoginCode()">Save</button>
+    </div>
+  </div>
+
+  <div class="form-group" id="spEncryption" style="display: none">
+    <div class="separator"></div>
+    <label for="encryptionKey" class="form-label">Encryption:</label>
+    <input class="form-input" type="text" id="encryptionKey" name="encryptionKey" placeholder="Enter encryption key here">
+    <button type="button" id="submitKey" class="action-button" onclick="saveEncryptionKey()">Save</button>
+  </div>
+</div>

@@ -1,0 +1,148 @@
+<button type="button" onclick="openModal('spModal'); getState();" class="action-button compact">Open global settings</button>
+
+<div class="form-group">
+  <label for="taskNumber" class="form-label">Number of tasks shown:</label>
+  <input class="form-input" type="number" id="taskNumber" name="taskNumber" min="1" max="10" placeholder="Enter number of tasks here">
+</div>
+
+<template id="spModalTemplate">
+  {% include 'superprod/modal.html' %}
+</template>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (loadPluginSettings) {
+      document.getElementById('taskNumber').value = pluginSettings.taskNumber || '';
+    }
+  });
+
+  const frame_div = document.querySelector(".frame")
+  const modal = document.createElement('div');
+  modal.classList.add('modal');
+  modal.id = 'spModal';
+
+  const modalTemplate = document.getElementById('spModalTemplate');
+  modal.appendChild(modalTemplate.content.cloneNode(true));
+  frame_div.appendChild(modal);
+
+  async function getState(forceCheck = false) {
+    try {
+      const response = await fetch(
+        "{{ url_for('main.execute_command') }}",
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            plugin_id: '{{ plugin.id }}',
+            method: 'sp.get_state',
+            args: JSON.stringify({ force_check: forceCheck ? 'True' : 'False' }),
+          })
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        document.getElementById('state').innerHTML = result.result;
+        if (result.result === 'LOGGED_OFF') {
+          document.getElementById('spLogin').style.display = 'flex';
+          document.getElementById('spEncryption').style.display = 'none';
+        } else if (result.result === 'ENCRYPTED') {
+          document.getElementById('spLogin').style.display = 'none';
+          document.getElementById('spEncryption').style.display = 'flex';
+        } else{
+          document.getElementById('spLogin').style.display = 'none';
+          document.getElementById('spEncryption').style.display = 'none';
+        }
+      } else {
+        showResponseModal('failure', `Error!  ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while processing your request.');
+    }
+  }
+
+  async function getLink() {
+    try {
+      const response = await fetch(
+        "{{ url_for('main.execute_command') }}",
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            plugin_id: '{{ plugin.id }}',
+            method: 'sp.get_login_link'
+          })
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        if (result.result !== null){
+          window.open(result.result, '_blank');
+        }
+      } else {
+        showResponseModal('failure', `Error!  ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while processing your request.');
+    }
+  }
+
+  async function saveLoginCode() {
+    try {
+      const response = await fetch(
+        "{{ url_for('main.execute_command') }}",
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            plugin_id: '{{ plugin.id }}',
+            method: 'sp.send_login_token',
+            args: JSON.stringify({ token: document.getElementById('loginCode').value }),
+          })
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        await getState();
+      } else {
+        showResponseModal('failure', `Error!  ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while processing your request.');
+    }
+  }
+
+  async function saveEncryptionKey() {
+    try {
+      const response = await fetch(
+        "{{ url_for('main.execute_command') }}",
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            plugin_id: '{{ plugin.id }}',
+            method: 'sp.send_encryption_key',
+            args: JSON.stringify({ key: document.getElementById('encryptionKey').value }),
+          })
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        await getState();
+      } else {
+        showResponseModal('failure', `Error!  ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while processing your request.');
+    }
+  }
+
+</script>
+
