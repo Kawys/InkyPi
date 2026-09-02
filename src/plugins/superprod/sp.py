@@ -40,6 +40,33 @@ class Sp:
         self._queue = None
         self.state = self._check_state()
 
+    def get_tasks(self, args: list, title: str):
+        if self.state != State.LOGGED_IN:
+            return {"title": f"Failed to fetch tasks. Current state: {self.state}"}
+        try:
+            result = subprocess.run(
+                ["sp", "--dropbox", *args, "--json"],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=ENV
+            )
+        except (OSError, subprocess.SubprocessError) as e:
+            logger.error(f"Failed to run fetch tasks: {e}")
+            return [{"title": f"Failed to run fetch tasks: {e}"}]
+
+        try:
+            result_list = json.loads(result.stdout)
+        except json.JSONDecodeError:
+            logger.warning(f"Could not parse command's output: {result.stdout.strip()}")
+            return [{"title": "Could not parse command's output"}]
+
+        tasks = {"title": title, "elements": []}
+        if isinstance(result_list, list):
+            for task in result_list:
+                tasks["elements"].append(task.get("title", ""))
+        return tasks
+
     def send_encryption_key(self, key: str) -> bool:
         if self.state != State.ENCRYPTED: return False
 

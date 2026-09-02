@@ -1,8 +1,31 @@
 <button type="button" onclick="openModal('spModal'); getState();" class="action-button compact">Open global settings</button>
 
 <div class="form-group">
-  <label for="taskNumber" class="form-label">Number of tasks shown:</label>
-  <input class="form-input" type="number" id="taskNumber" name="taskNumber" min="1" max="10" placeholder="Enter number of tasks here">
+  <div class="form-group nowrap">
+    <label for="title" class="form-label">Title</label>
+    <input type="text" id="title" name="title" placeholder="Type something..." class="form-input">
+  </div>
+  <div class="form-group nowrap">
+    <label for="listStyle" class="form-label">List Style:</label>
+    <select id="listStyle" name="listStyle" class="form-input">
+      <option value="disc">Disc (●)</option>
+      <option value="square">Square (◼)</option>
+      <option value="'\25C6  '">Diamond (◆)</option>
+      <option value="decimal">Decimal</option>
+      <option value="lower-roman">Roman Numeral</option>
+      <option value="lower-alpha">Alphabetical</option>
+    </select>
+  </div>
+  <div class="form-group nowrap">
+    <label for="fontSize" class="form-label">Font Size:</label>
+    <select id="fontSize" name="fontSize" class="form-input">
+      <option value="x-small">Extra Small</option>
+      <option value="small">Small</option>
+      <option value="normal">Normal</option>
+      <option value="large">Large</option>
+      <option value="x-large">Extra Larger</option>
+    </select>
+  </div>
 </div>
 
 <template id="spModalTemplate">
@@ -11,9 +34,17 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    let fontSize = "normal";
+    let listStyle = "disc";
+
     if (loadPluginSettings) {
-      document.getElementById('taskNumber').value = pluginSettings.taskNumber || '';
+      document.getElementById('title').value = pluginSettings.title || '';
+      fontSize = pluginSettings.fontSize;
+      listStyle = pluginSettings.listStyle;
     }
+
+    document.getElementById('fontSize').value = fontSize;
+    document.getElementById('listStyle').value = listStyle;
   });
 
   const frame_div = document.querySelector(".frame")
