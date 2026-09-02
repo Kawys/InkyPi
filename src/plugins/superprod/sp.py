@@ -9,13 +9,14 @@ from queue import Queue
 from enum import Enum
 import logging
 import re
+from config import Config
 
 LOGIN_URL_PATTERN = re.compile(r"https://[\x21-\x7A]+")
 LOGIN_SUCCESS_PATTERN = re.compile(r"Successfully logged in", re.IGNORECASE)
 ENCRYPTED_PATTERN = re.compile(r"Sync file is encrypted|Failed to decrypt sync file")
 LOGIN_LINK_TIMEOUT = 10
 ENV = os.environ.copy()
-ENV['PATH'] = f"/home/karol/Projects/InkyPi/node_modules/.bin:{ENV['PATH']}"
+ENV['PATH'] = os.path.join(os.path.dirname(Config.BASE_DIR), "node_modules", ".bin") + ":" + ENV['PATH']
 
 class State(Enum):
     ERROR = 0
